@@ -33,8 +33,8 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 /*
- * This file includes a teleop (driver-controlled) file for the goBILDAĀ® StarterBot with Mecanum
- * Wheels for the 2026-2027 FIRSTĀ® Tech Challenge. On top of a mecanum wheel drivetrain, it uses
+ * This file includes a teleop (driver-controlled) file for the goBILDARR StarterBot with Mecanum
+ * Wheels for the 2026-2027 FIRSTRR Tech Challenge. On top of a mecanum wheel drivetrain, it uses
  * one motor driving an intake roller, two servos which pull elements out of corners, and a high-speed
  * launcher motor.
  *
