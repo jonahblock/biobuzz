@@ -48,9 +48,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 /*
- * This file includes an autonomous file for the goBILDAR StarterBot for the
- * 2026-2027 FIRSTR Tech Challenge season BIOBUZZ™. It leverages a differential/Skid-Steer system
- * for robot mobility, one motor driving an intake roller, two servos which pull elements out of
+ * This file includes is based on an autonomous file for the goBILDAR StarterBot for the
+ * 2026-2027 FIRSTR Tech Challenge season BIOBUZZ™. It used to leverage a differential/Skid-Steer system
+ * for robot mobility, but now is mecanum-based one motor driving an intake roller, two servos which pull elements out of
  * corners, and a high-speed launcher motor.
  *
  * This robot starts up against the playing field wall and launches all four projectiles
@@ -179,9 +179,9 @@ public class StarterBotAuto extends OpMode
          * Reduction or 90 Deg drives may require direction flips
          */
         leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
+        rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
 
         /*
          * Here we reset the encoders on our drive motors before we start moving.
@@ -368,7 +368,7 @@ public class StarterBotAuto extends OpMode
          * the driveTimer. Only after we reach the target can the timer count higher than our
          * holdSeconds variable.
          */
-        if(Math.abs(targetPosition - leftDrive.getCurrentPosition()) > (TOLERANCE_MM * TICKS_PER_MM)){
+        if(Math.abs(targetPosition - leftFrontDrive.getCurrentPosition()) > (TOLERANCE_MM * TICKS_PER_MM)){
             driveTimer.reset();
         }
 
@@ -416,9 +416,10 @@ public class StarterBotAuto extends OpMode
 
         leftFrontDrive.setPower(speed);
         leftBackDrive.setPower(speed);
-        rightDrive.setPower(speed);
+        rightFrontDrive.setPower(speed);
+        rightBackDrive.setPower(speed);
 
-        if((Math.abs(leftTargetPosition - leftDrive.getCurrentPosition())) > (TOLERANCE_MM * TICKS_PER_MM)){
+        if((Math.abs(leftTargetPosition - leftFrontDrive.getCurrentPosition())) > (TOLERANCE_MM * TICKS_PER_MM)){
             driveTimer.reset();
         }
 
