@@ -48,9 +48,15 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 /*
+<<<<<<< HEAD
+ * This file was based off of an autonomous file for the goBILDAR StarterBot for the
+ * 2026-2027 FIRSTR Tech Challenge season BIOBUZZ™. It used leverages a differential/Skid-Steer system
+ * for robot mobility, but I've edited it to make it so it is mecanum-based instead one motor driving an intake roller, two servos which pull elements out of
+=======
  * This file includes is based on an autonomous file for the goBILDAR StarterBot for the
  * 2026-2027 FIRSTR Tech Challenge season BIOBUZZ™. It used to leverage a differential/Skid-Steer system
  * for robot mobility, but now is mecanum-based one motor driving an intake roller, two servos which pull elements out of
+>>>>>>> c6b52088eda1d5942f682d4ba429045c4bce58ce
  * corners, and a high-speed launcher motor.
  *
  * This robot starts up against the playing field wall and launches all four projectiles
@@ -131,6 +137,8 @@ public class StarterBotAuto extends OpMode
     private enum AutonomousState {
         LAUNCH,
         DRIVE,
+        TURN,
+        PARK,
         COMPLETE
     }
 
@@ -151,7 +159,6 @@ public class StarterBotAuto extends OpMode
          * Here we set the first step of our autonomous state machine by setting
          * autonomousState = AutonomousState.LAUNCH. Later in our code, we will progress through
          * the state machine by moving to other enum members.
-         * We do the same for our launcher state machine, setting it to IDLE before we use it later.
          */
         autonomousState = AutonomousState.LAUNCH;
 
@@ -167,17 +174,11 @@ public class StarterBotAuto extends OpMode
         rightBackDrive = hardwareMap.get(DcMotor.class, "right_back_drive");
         intake = hardwareMap.get(DcMotor.class, "intake");
         launcher = hardwareMap.get(DcMotorEx.class, "launcher");
-        windmillServo = hardwareMap.get(CRServo.class, "windmill");
+        windmillServo = hardwareMap.get(CRServo.class, "windmillServo");
         leftIntakeServo = hardwareMap.get(CRServo.class, "left_intake_servo");
         rightIntakeServo = hardwareMap.get(CRServo.class, "right_intake_servo");
 
-        /*
-         * To drive forward, most robots need the motor on one side to be reversed,
-         * because the axles point in opposite directions. Pushing the left stick forward
-         * MUST make robot go forward. So adjust these two lines based on your first test drive.
-         * Note: The settings here assume direct drive on left and right wheels. Gear
-         * Reduction or 90 Deg drives may require direction flips
-         */
+        
         leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
         leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
@@ -272,11 +273,27 @@ public class StarterBotAuto extends OpMode
                 break;
             case DRIVE:
                 if(drive(DRIVE_SPEED, -120, DistanceUnit.MM, 2)){
+                    resetDriveEncoders();
+                    autonomousState = AutonomousState.TURN;
+                }
+                break;
+            case TURN:
+                
+                // ↓ rotate 90 degrees clockwise 
+                if(rotate(ROTATE_SPEED, -90, AngleUnit.DEGREES, 1)) {
+                    resetDriveEncoders();
+                    autonomousState = AutonomousState.PARK;
+                }
+                break;
+            case PARK:
+                // ↓ drive 610mm forward (one tile) 
+                if(drive(DRIVE_SPEED, 610, DistanceUnit.MM, 2)) {
+                    driveTimer.reset();
                     autonomousState = AutonomousState.COMPLETE;
                 }
                 break;
             case COMPLETE:
-                telemetry.addLine("Auto Complete!");
+                telemetry.addLine("Auto v2 Complete!");
                 break;
         }
 
@@ -424,6 +441,12 @@ public class StarterBotAuto extends OpMode
         }
 
         return (driveTimer.seconds() > holdSeconds);
+    }
+    void resetDriveEncoders(){
+        leftFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        leftBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightFrontDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        rightBackDrive.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
 }
 
