@@ -48,15 +48,9 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
 
 /*
-<<<<<<< HEAD
  * This file was based off of an autonomous file for the goBILDAR StarterBot for the
  * 2026-2027 FIRSTR Tech Challenge season BIOBUZZ™. It used leverages a differential/Skid-Steer system
  * for robot mobility, but I've edited it to make it so it is mecanum-based instead one motor driving an intake roller, two servos which pull elements out of
-=======
- * This file includes is based on an autonomous file for the goBILDAR StarterBot for the
- * 2026-2027 FIRSTR Tech Challenge season BIOBUZZ™. It used to leverage a differential/Skid-Steer system
- * for robot mobility, but now is mecanum-based one motor driving an intake roller, two servos which pull elements out of
->>>>>>> c6b52088eda1d5942f682d4ba429045c4bce58ce
  * corners, and a high-speed launcher motor.
  *
  * This robot starts up against the playing field wall and launches all four projectiles
@@ -138,7 +132,9 @@ public class StarterBotAuto extends OpMode
         LAUNCH,
         DRIVE,
         TURN,
-        PARK,
+        VERB,
+        SECONDTURN,
+        SIXFEET,
         COMPLETE
     }
 
@@ -282,12 +278,26 @@ public class StarterBotAuto extends OpMode
                 // ↓ rotate 90 degrees clockwise 
                 if(rotate(ROTATE_SPEED, -90, AngleUnit.DEGREES, 1)) {
                     resetDriveEncoders();
-                    autonomousState = AutonomousState.PARK;
+                    autonomousState = AutonomousState.VERB;
                 }
                 break;
-            case PARK:
-                // ↓ drive 610mm forward (one tile) 
-                if(drive(DRIVE_SPEED, 610, DistanceUnit.MM, 2)) {
+            case VERB:
+                // ↓ drive 43 inches forward? (one tile) 
+                if(drive(DRIVE_SPEED, 43, DistanceUnit.INCH, 2)) {
+                    
+                    resetDriveEncoders();
+                    autonomousState = AutonomousState.SECONDTURN;
+                }
+                break;
+            case SECONDTURN:
+                if(rotate(ROTATE_SPEED, 90, AngleUnit.DEGREES, 1)) {
+                    resetDriveEncoders();
+                    autonomousState = AutonomousState.SIXFEET;
+                }
+                break;
+            case SIXFEET:
+                //6.5 ft
+                if(drive(DRIVE_SPEED, 78, DistanceUnit.INCH, 2)) {
                     driveTimer.reset();
                     autonomousState = AutonomousState.COMPLETE;
                 }
