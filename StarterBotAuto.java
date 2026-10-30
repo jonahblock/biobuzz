@@ -105,6 +105,7 @@ public class StarterBotAuto extends OpMode
      */
     private ElapsedTime driveTimer = new ElapsedTime();
     private ElapsedTime autoTimer = new ElapsedTime();
+    private ElapsedTime stepTimer = new ElapsedTime();
 
     // Declare OpMode members.
     private DcMotor leftFrontDrive = null;
@@ -176,9 +177,9 @@ public class StarterBotAuto extends OpMode
 
         
         leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightFrontDrive.setDirection(DcMotor.Direction.REVERSE);
+        rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
-        rightBackDrive.setDirection(DcMotor.Direction.REVERSE);
+        rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
 
         /*
          * Here we reset the encoders on our drive motors before we start moving.
@@ -248,6 +249,7 @@ public class StarterBotAuto extends OpMode
      * This code runs REPEATEDLY after the driver hits START but before they hit STOP.
      */
     @Override
+    
     public void loop() {
         /*
          * TECH TIP: Switch Statements
@@ -258,46 +260,51 @@ public class StarterBotAuto extends OpMode
          * of the members of the enum for a match, since if we find the "break" line in one case,
          * we know our enum isn't reflecting a different state.
          */
+    
         switch (autonomousState) {
             case LAUNCH:
                 launch(true);
                 if(autoTimer.seconds() > 10){
                     launch(false);
                     intakePower = 0;
+                    stepTimer.reset();
                     autonomousState = AutonomousState.DRIVE;
                 }
                 break;
             case DRIVE:
-                if(drive(DRIVE_SPEED, -120, DistanceUnit.MM, 2)){
+                if(drive(DRIVE_SPEED, 43, DistanceUnit.INCH, 1) || stepTimer.seconds() > 1){
                     resetDriveEncoders();
+                    stepTimer.reset();
                     autonomousState = AutonomousState.TURN;
                 }
                 break;
             case TURN:
                 
                 // ↓ rotate 90 degrees clockwise 
-                if(rotate(ROTATE_SPEED, -90, AngleUnit.DEGREES, 1)) {
+                if(rotate(ROTATE_SPEED, -90, AngleUnit.DEGREES, 1) || stepTimer.seconds() > 1) {
                     resetDriveEncoders();
+                    stepTimer.reset();
                     autonomousState = AutonomousState.VERB;
                 }
                 break;
             case VERB:
                 // ↓ drive 43 inches forward? (one tile) 
-                if(drive(DRIVE_SPEED, 43, DistanceUnit.INCH, 2)) {
+                if(drive(DRIVE_SPEED, 43, DistanceUnit.INCH, 1) || stepTimer.seconds() > 1) {
                     
                     resetDriveEncoders();
+                    stepTimer.reset();
                     autonomousState = AutonomousState.SECONDTURN;
                 }
                 break;
             case SECONDTURN:
-                if(rotate(ROTATE_SPEED, 90, AngleUnit.DEGREES, 1)) {
+                if(rotate(ROTATE_SPEED, 90, AngleUnit.DEGREES, 1) || stepTimer.seconds() > 1) {
                     resetDriveEncoders();
                     autonomousState = AutonomousState.SIXFEET;
                 }
                 break;
             case SIXFEET:
                 //6.5 ft
-                if(drive(DRIVE_SPEED, 78, DistanceUnit.INCH, 2)) {
+                if(drive(DRIVE_SPEED, 78, DistanceUnit.INCH, 2) || stepTimer.seconds() > 1) {
                     driveTimer.reset();
                     autonomousState = AutonomousState.COMPLETE;
                 }
@@ -360,6 +367,35 @@ public class StarterBotAuto extends OpMode
      * @return "true" if the motors are within tolerance of the target position for more than
      * holdSeconds. "false" otherwise.
      */
+    double leftFrontPower;
+    double rightFrontPower;
+    double leftBackPower;
+    double rightBackPower;
+    void mecanumDrive(double forward, double strafe, double rotate) {
+        leftFrontPower = forward + strafe + rotate;
+        rightFrontPower = forward - strafe - rotate;
+        leftBackPower = forward - strafe + rotate;
+        rightBackPower = forward + strafe - rotate;
+
+        double max = Math.max(Math.abs(leftFrontPower), Math.abs(rightFrontPower));
+        max = Math.max(max, Math.abs(leftBackPower));
+        max = Math.max(max, Math.abs(rightBackPower));
+
+        if (max > 1.0) {
+            leftFrontPower /= max;
+            rightFrontPower /= max;
+            leftBackPower /= max;
+            rightBackPower /= max;
+        }
+
+        /*
+         * Send calculated power to wheels
+         */
+        leftFrontDrive.setPower(leftFrontPower);
+        rightFrontDrive.setPower(rightFrontPower);
+        leftBackDrive.setPower(leftBackPower);
+        rightBackDrive.setPower(rightBackPower);
+    }
     boolean drive(double speed, double distance, DistanceUnit distanceUnit, double holdSeconds) {
         final double TOLERANCE_MM = 10;
         /*
@@ -383,10 +419,7 @@ public class StarterBotAuto extends OpMode
         rightFrontDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
         rightBackDrive.setMode(DcMotor.RunMode.RUN_TO_POSITION);
 
-        leftFrontDrive.setPower(speed);
-        leftBackDrive.setPower(speed);
-        rightFrontDrive.setPower(speed);
-        rightBackDrive.setPower(speed);
+        mecanumDrive(Math.abs(speed), 0, 0);
 
         /*
          * Here we check if we are within tolerance of our target position or not. We calculate the
@@ -395,7 +428,7 @@ public class StarterBotAuto extends OpMode
          * the driveTimer. Only after we reach the target can the timer count higher than our
          * holdSeconds variable.
          */
-        if(Math.abs(targetPosition - leftFrontDrive.getCurrentPosition()) > (TOLERANCE_MM * TICKS_PER_MM)){
+        if (Math.abs(targetPosition - leftFrontDrive.getCurrentPosition()) > (TOLERANCE_MM * TICKS_PER_MM)) {
             driveTimer.reset();
         }
 
