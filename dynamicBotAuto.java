@@ -11,14 +11,9 @@ import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
-import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+@Autonomous(name = "DynamicBotAuto", group = "DynamicBot")
+public class DynamicBotAuto extends OpMode {
 
-
-@Autonomous(name="DynamicBotAuto", group="DynamicBot")
-
-public class DynamicBotAuto extends OpMode
-{
     private DcMotor leftFrontDrive = null;
     private DcMotor leftBackDrive = null;
     private DcMotor rightFrontDrive = null;
@@ -29,19 +24,21 @@ public class DynamicBotAuto extends OpMode
     private CRServo rightIntakeServo = null;
     private CRServo windmillServo = null;
 
-    public final int LAUNCHER_TARGET_VELOCITY = 1250; 
-    public final int LAUNCHER_MIN_VELOCITY = 1200; 
+    public final int LAUNCHER_TARGET_VELOCITY = 1250;
+    public final int LAUNCHER_MIN_VELOCITY = 1200;
 
     double leftFrontPower;
     double rightFrontPower;
     double leftBackPower;
     double rightBackPower;
 
+    double intakePower;
+    boolean fake_right_bumper;
+
     private ElapsedTime autoTimer = new ElapsedTime();
 
-    @Override 
+    @Override
     public void init() {
-        
         leftFrontDrive = hardwareMap.get(DcMotor.class, "left_front_drive");
         rightFrontDrive = hardwareMap.get(DcMotor.class, "right_front_drive");
         leftBackDrive = hardwareMap.get(DcMotor.class, "left_back_drive");
@@ -52,36 +49,28 @@ public class DynamicBotAuto extends OpMode
         leftIntakeServo = hardwareMap.get(CRServo.class, "left_intake_servo");
         rightIntakeServo = hardwareMap.get(CRServo.class, "right_intake_servo");
 
-        
         leftFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         rightFrontDrive.setDirection(DcMotor.Direction.FORWARD);
         leftBackDrive.setDirection(DcMotor.Direction.FORWARD);
         rightBackDrive.setDirection(DcMotor.Direction.FORWARD);
 
-        
         leftFrontDrive.setZeroPowerBehavior(BRAKE);
         rightFrontDrive.setZeroPowerBehavior(BRAKE);
         leftBackDrive.setZeroPowerBehavior(BRAKE);
         rightBackDrive.setZeroPowerBehavior(BRAKE);
         intake.setZeroPowerBehavior(BRAKE);
 
-        
-
         launcher.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-
         launcher.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, new PIDFCoefficients(40, 0, 0, 12.5));
 
-        
         leftIntakeServo.setPower(0);
         rightIntakeServo.setPower(0);
         windmillServo.setPower(0);
 
-        
         rightIntakeServo.setDirection(DcMotorSimple.Direction.REVERSE);
         windmillServo.setDirection(DcMotorSimple.Direction.FORWARD);
 
-        
-        telemetry.addData("Status", "Initialized!⨟");
+        telemetry.addData("Status", "Initialized");
     }
 
     @Override
@@ -91,39 +80,46 @@ public class DynamicBotAuto extends OpMode
     @Override
     public void start() {
         autoTimer.reset();
-        
     }
 
-    public boolean fake_right_bumper;
-    public string action;
-    
     @Override
     public void loop() {
-
         fake_right_bumper = false;
-        intake_power = 0.0f;
+        intakePower = 0.0;
+        mecanumDrive(0, 0, 0);
 
-        action = defineAction();
+        String action = defineAction();
 
         switch (action) {
             case "left_trigger":
-                intake_power = -1.0f;
+                intakePower = -1.0;
+                break;
             case "right_trigger":
-                intake_power = 1.0f;
+                intakePower = 1.0;
+                break;
             case "launch":
                 fake_right_bumper = true;
+                break;
             case "forward":
                 mecanumDrive(1, 0, 0);
+                break;
             case "backward":
                 mecanumDrive(-1, 0, 0);
+                break;
             case "right":
                 mecanumDrive(0, 1, 0);
+                break;
             case "left":
-                mecanumDruve(0, -1, 0);
+                mecanumDrive(0, -1, 0);
+                break;
             case "clockwise":
                 mecanumDrive(0, 0, 1);
+                break;
             case "counter_clockwise":
                 mecanumDrive(0, 0, -1);
+                break;
+            default:
+                break;
         }
 
         if (fake_right_bumper) {
@@ -131,7 +127,7 @@ public class DynamicBotAuto extends OpMode
         } else {
             launcher.setVelocity(0);
         }
-        
+
         if (fake_right_bumper && launcher.getVelocity() > LAUNCHER_MIN_VELOCITY) {
             windmillServo.setPower(1);
             intakePower += 0.5;
@@ -161,13 +157,15 @@ public class DynamicBotAuto extends OpMode
             rightBackPower /= max;
         }
 
-        
         leftFrontDrive.setPower(leftFrontPower);
         rightFrontDrive.setPower(rightFrontPower);
         leftBackDrive.setPower(leftBackPower);
         rightBackDrive.setPower(rightBackPower);
     }
-    public string defineAction() {
+
+    public String defineAction() {
         
+
+        return "none"; 
     }
 }
